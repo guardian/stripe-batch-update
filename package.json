@@ -1,0 +1,14 @@
+{
+  "name": "clean-stripe",
+  "version": "1.0.0",
+  "description": "Remove Identity Ids from Stripe",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "clean-stripe": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^5.0.1",
+    "node-fetch": "^2.1.2"
+  }
+}
