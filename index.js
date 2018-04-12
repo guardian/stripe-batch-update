@@ -2,14 +2,15 @@ require('dotenv').load();
 const fetch = require('node-fetch');
 const url = 'https://api.stripe.com/v1/customers';
 const Authorization = `Bearer ${process.env.STRIPE_KEY}`; //Set this value in .env file in the same directory as this file
-let iterations = 0;
+const maxPages = 999999999; //The maximum number of pages of customers to update
+let pages = 0;
 let numOfCustomers = 0;
 let delay = 0; //Used to stagger requests
 
 function cleanAll(previousId) {
     return cleanPage(previousId)
         .then(result => {
-            if (result == undefined) {
+            if (result == undefined || pages > maxPages) {
                 return undefined;
             } else {
                 cleanAll(result);
@@ -18,9 +19,9 @@ function cleanAll(previousId) {
 }
 
 function cleanPage(previousId) {
-    iterations++;
-    console.log(`Fetching page ${iterations}`)
-    const fetchUrl = `${url}?limit=100` + (previousId == undefined ? '' : `&starting_after=${previousId}`);
+    pages++;
+    console.log(`Fetching page ${pages}`)
+    const fetchUrl = `${url}?limit=10` + (previousId == undefined ? '' : `&starting_after=${previousId}`);
     return fetchCustomers(fetchUrl)
         .then(response => response.json())
         .then(json => {
@@ -70,7 +71,7 @@ function updateCustomer(url) {
             Authorization,
             'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: "description=null",
+        body: "description=", //Update any fields you want here, this sets the decription to null
     })
 }
 
@@ -81,7 +82,6 @@ function logError(response) {
 }
 
 cleanAll();
-
 
 
 
