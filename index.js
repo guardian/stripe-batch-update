@@ -3,6 +3,7 @@ const fetch = require('node-fetch');
 const url = 'https://api.stripe.com/v1/customers';
 const Authorization = `Bearer ${process.env.STRIPE_KEY}`; //Set this value in .env file in the same directory as this file
 const maxPages = 999999999; //The maximum number of pages of customers to update
+const pageSize = 1000;
 let pages = 0;
 let numOfCustomers = 0;
 let delay = 0; //Used to stagger requests
@@ -21,13 +22,13 @@ function cleanAll(previousId) {
 function cleanPage(previousId) {
     pages++;
     console.log(`Fetching page ${pages}`)
-    const fetchUrl = `${url}?limit=10` + (previousId == undefined ? '' : `&starting_after=${previousId}`);
+    const fetchUrl = `${url}?limit=${pageSize}` + (previousId == undefined ? '' : `&starting_after=${previousId}`);
     return fetchCustomers(fetchUrl)
         .then(response => response.json())
         .then(json => {
             json.data
                 .filter(c => c.description != null && c.description != 'null')
-                .forEach(c => setTimeout(() => cleanCustomer(c.id), delay++ * 1000));
+                .forEach(c => setTimeout(() => cleanCustomer(c.id), delay++ * 500));
             if (json.has_more == true) {
                 return json.data[json.data.length - 1].id;
             } else {
@@ -57,7 +58,7 @@ function cleanCustomer(customerId) {
         })
         .then(json => {
             if (json != undefined) {
-                console.log(`Successfully cleaned ${customerId}, new description is ${json.description}`);
+                console.log(`Successfully cleaned ${customerId}`);
             } else {
                 console.error(`Failed to clean ${customerId}`);
             }
@@ -82,6 +83,3 @@ function logError(response) {
 }
 
 cleanAll();
-
-
-
