@@ -4,6 +4,7 @@ const url = 'https://api.stripe.com/v1/customers';
 const Authorization = `Bearer ${process.env.STRIPE_KEY}`; //Set this value in .env file in the same directory as this file
 const maxPages = 999999999; //The maximum number of pages of customers to update
 const pageSize = 1000;
+const timeout = 10000;
 let pages = 0;
 let numOfCustomers = 0;
 let delay = 0; //Used to stagger requests
@@ -30,7 +31,9 @@ function cleanPage(previousId) {
                 .filter(c => c.description != null && c.description != 'null')
                 .forEach(c => setTimeout(() => cleanCustomer(c.id), delay++ * 500));
             if (json.has_more == true) {
-                return json.data[json.data.length - 1].id;
+                let lastId = json.data[json.data.length - 1].id;
+                console.log(`Fetching next page starting after id ${lastId}`)
+                return lastId;
             } else {
                 console.log(`Cleaned ${numOfCustomers} customers`)
                 return undefined;
@@ -43,6 +46,7 @@ function fetchCustomers(url) {
         headers: {
             Authorization
         },
+        timeout,
     });
 }
 
@@ -73,6 +77,7 @@ function updateCustomer(url) {
             'Content-Type': 'application/x-www-form-urlencoded',
         },
         body: "description=", //Update any fields you want here, this sets the decription to null
+        timeout,
     })
 }
 
